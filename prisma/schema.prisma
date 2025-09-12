@@ -1,0 +1,45 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+
+model Tenant {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  plan      String   @default("FREE") // FREE or PRO
+  createdAt DateTime @default(now())
+  users     User[]
+  notes     Note[]
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  role      String   @default("MEMBER") // ADMIN | MEMBER
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  tenantId  String
+  createdAt DateTime @default(now())
+
+  // 👇 Add this line to complete the relation
+  notes Note[] @relation("UserNotes")
+}
+
+model Note {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  tenantId  String
+  author    User?    @relation("UserNotes", fields: [authorId], references: [id]) // 👈 add relation name
+  authorId  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
